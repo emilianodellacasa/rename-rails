@@ -7,7 +7,7 @@ Gem::Specification.new do |gem|
   gem.version = RenameRails::VERSION
   gem.licenses = ["MIT"]
   gem.summary = "Rename your Rails application using a single command."
-  gem.authors = ["Morshed Alam", "Richard Logwood", "Jake Romer"]
+  gem.authors = ["Morshed Alam", "Esther Leytush", "Damian Bronzetti", "Richard Logwood", "Jake Romer"]
   gem.email = "jake@jmromer.org"
   gem.files = `git ls-files`.split("\n")
   gem.homepage = "https://github.com/jmromer/rename-rails"

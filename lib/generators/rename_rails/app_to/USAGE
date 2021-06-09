@@ -1,1 +1,1 @@
-rails generate rename:app_to NewAppName
+rails generate rename_rails:app_to NewAppName

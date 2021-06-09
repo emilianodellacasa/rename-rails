@@ -8,7 +8,6 @@ module RenameRails
       include CommonMethods
 
       def app_to
-        warn "[DEPRECATION] `app_to` is deprecated.  Please use `into` instead."
         perform
       end
     end
