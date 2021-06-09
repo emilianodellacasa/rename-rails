@@ -1,13 +1,15 @@
 rename-rails
 ============
 
-This gem allows you to rename your Rails application by using a single command.
+This gem allows you to rename your Rails application using a single command.
 
-Fork of [rename][rename] by [@morshedalam][], with updates for Rails 6 provided by [@rlogwood][].
+A fork of [rename][rename], originally authored by [@morshedalam][], with
+updates for Rails 6 provided by [@rlogwood][] and [@dbronzetti][].
 
 [rename]: https://github.com/morshedalam/rename
 [@morshedalam]: https://github.com/morshedalam
 [@rlogwood]: https://github.com/rlogwood
+[@dbronzetti]: https://github.com/dbronzetti
 
 
 Installation
