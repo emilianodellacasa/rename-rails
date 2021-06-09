@@ -1,6 +1,8 @@
-require File.expand_path('../shared/common_methods', File.dirname(__FILE__))
+# frozen_string_literal: true
 
-module Rename
+require File.expand_path("../shared/common_methods", File.dirname(__FILE__))
+
+module RenameRails
   module Generators
     class IntoGenerator < Rails::Generators::Base
       include CommonMethods

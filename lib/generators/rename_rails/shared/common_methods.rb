@@ -1,12 +1,14 @@
-require 'active_support/concern'
+# frozen_string_literal: true
+
+require "active_support/concern"
 
 module CommonMethods
   extend ActiveSupport::Concern
 
   included do
-    desc 'Rename your Rails application'
+    desc "Rename your Rails application"
 
-    argument :new_name, :type => :string, :default => ''
+    argument :new_name, type: :string, default: ""
   end
 
   protected
@@ -27,67 +29,65 @@ module CommonMethods
   end
 
   def prepare_app_vars
-    @new_key         = new_name.gsub(/\W/, '_')
+    @new_key         = new_name.gsub(/\W/, "_")
     @old_module_name = app_parent
-    @new_module_name = @new_key.squeeze('_').camelize
-    @new_dir         = new_name.gsub(/[&%*@()!{}\[\]'\\\/"]+/, '')
-    @new_path        = Rails.root.to_s.split('/')[0...-1].push(@new_dir).join('/')
+    @new_module_name = @new_key.squeeze("_").camelize
+    @new_dir         = new_name.gsub(%r{[&%*@()!{}\[\]'\\/"]+}, "")
+    @new_path        = Rails.root.to_s.split("/")[0...-1].push(@new_dir).join("/")
   end
 
   def validate_name_and_path?
     if new_name.blank?
       raise Thor::Error, "[Error] Application name can't be blank."
-    elsif new_name =~ /^\d/
-      raise Thor::Error, '[Error] Please give a name which does not start with numbers.'
-    elsif @new_module_name.size < 1
-      raise Thor::Error, '[Error] Please enter at least one alphabet.'
+    elsif /^\d/.match?(new_name)
+      raise Thor::Error, "[Error] Please give a name which does not start with numbers."
+    elsif @new_module_name.empty?
+      raise Thor::Error, "[Error] Please enter at least one alphabet."
     elsif reserved_names.include?(@new_module_name.downcase)
-      raise Thor::Error, '[Error] Please give a name which does not match any of the reserved Rails keywords.'
+      raise Thor::Error, "[Error] Please give a name which does not match any of the reserved Rails keywords."
     elsif Object.const_defined?(@new_module_name)
       raise Thor::Error, "[Error] Constant #{@new_module_name} is already in use, please choose another name."
-    elsif File.exists?(@new_path)
-      raise Thor::Error, '[Error] Already in use, please choose another name.'
+    elsif File.exist?(@new_path)
+      raise Thor::Error, "[Error] Already in use, please choose another name."
     end
   end
 
   # rename_app_to_new_app_module
   def apply_new_module_name
     in_root do
-      puts 'Search and replace module in...'
+      puts "Search and replace module in..."
 
-      #Search and replace module in to file
-      Dir['*', 'config/**/**/*.rb', '.{rvmrc}'].each do |file|
+      # Search and replace module in to file
+      Dir["*", "config/**/**/*.rb", ".{rvmrc}"].each do |file|
         # file = File.join(Dir.pwd, file)
         replace_into_file(file, /(#{@old_module_name}*)/m, @new_module_name)
       end
 
-      #Rename session key
-      replace_into_file('config/initializers/session_store.rb', /(('|")_.*_session('|"))/i, "'_#{@new_key}_session'")
-      #Rename database
-      replace_into_file('config/database.yml', /#{@old_module_name.underscore}/i, @new_name.underscore)
-
+      # Rename session key
+      replace_into_file("config/initializers/session_store.rb", /(('|")_.*_session('|"))/i, "'_#{@new_key}_session'")
+      # Rename database
+      replace_into_file("config/database.yml", /#{@old_module_name.underscore}/i, @new_name.underscore)
 
       # Update package.json name entry
       old_package_name_regex = /\Wname\W *: *\W(?<name>[-_\p{Alnum}]+)\W *, */i
       new_package_name = %("name":"#{@new_module_name.underscore}",)
-      replace_into_file('package.json', old_package_name_regex, new_package_name)
+      replace_into_file("package.json", old_package_name_regex, new_package_name)
 
       # Update app/views/layouts/application.html.erb title
-      replace_into_file('app/views/layouts/application.html.erb', "<title>#{@old_module_name}</title>",
+      replace_into_file("app/views/layouts/application.html.erb", "<title>#{@old_module_name}</title>",
                         "<title>#{@new_module_name}</title>")
 
       # Update channel prefix config/cable.yml
-      replace_into_file('config/cable.yml', "#{@old_module_name.underscore}_production",
+      replace_into_file("config/cable.yml", "#{@old_module_name.underscore}_production",
                         "#{@new_module_name.underscore}_production")
 
       # Update config/environments/production.rb  # config.active_job.queue_name_prefix = "(myapp)_production"
-      replace_into_file('config/environments/production.rb', "#{@old_module_name.underscore}_production",
+      replace_into_file("config/environments/production.rb", "#{@old_module_name.underscore}_production",
                         "#{@new_module_name.underscore}_production")
 
       # config/database.yml capitalize environment variable
-      replace_into_file('config/database.yml', "ENV['#{@new_module_name.underscore}_DATABASE_PASSWORD']",
+      replace_into_file("config/database.yml", "ENV['#{@new_module_name.underscore}_DATABASE_PASSWORD']",
                         "ENV['#{@new_module_name.underscore.upcase}_DATABASE_PASSWORD']")
-
     end
   end
 
@@ -104,29 +104,29 @@ module CommonMethods
   end
 
   def rename_references
-    puts 'Renaming references...'
+    puts "Renaming references..."
     old_basename = File.basename(Dir.getwd)
 
     in_root do
-      Dir.glob('.idea/*', File::FNM_DOTMATCH).each do |file|
+      Dir.glob(".idea/*", File::FNM_DOTMATCH).each do |file|
         replace_into_file(file, old_basename, @new_dir)
       end
 
-      gem_set_file = '.ruby-gemset'
+      gem_set_file = ".ruby-gemset"
       replace_into_file(gem_set_file, old_basename, @new_dir) if File.exist?(gem_set_file)
     end
   end
 
   def rename_directory
-    print 'Renaming directory...'
+    print "Renaming directory..."
 
     begin
       # FileUtils.mv Dir.pwd, app_path
       File.rename(Rails.root.to_s, @new_path)
-      puts 'Done!'
+      puts "Done!"
       puts "New application path is '#{@new_path}'"
-    rescue Exception => ex
-      puts "Error:#{ex.inspect}"
+    rescue StandardError => e
+      puts "Error:#{e.inspect}"
     end
   end
 
@@ -135,8 +135,8 @@ module CommonMethods
 
     begin
       gsub_file file, search_exp, replace
-    rescue Exception => ex
-      puts "Error: #{ex.message}"
+    rescue StandardError => e
+      puts "Error: #{e.message}"
     end
   end
 end
