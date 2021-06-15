@@ -20,7 +20,7 @@ Installation
 Add the following to your Rails app's `Gemfile` and `bundle install`:
 
 ```ruby
-gem "rename"
+gem "rename-rails"
 ```
 
 Usage
